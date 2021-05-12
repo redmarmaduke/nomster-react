@@ -1,0 +1,17 @@
+@keyframes slides {
+    from {
+        margin-left: -32.5vw;
+    }
+    to {
+        margin-left: -46.5vw;
+    }
+}
+
+@keyframes fadein {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

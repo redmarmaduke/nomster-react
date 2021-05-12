@@ -1,0 +1,25 @@
+{
+  "name": "nomster-react",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "concurrently \"nodemon --ignore client server.js\" \"cd client && npm run start\"",
+    "start:prod": "node server.js",
+    "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^9.0.0",
+    "express": "^4.17.1",
+    "if-env": "^1.0.4",
+    "yelp-fusion": "^3.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^6.1.0",
+    "nodemon": "^2.0.7"
+  }
+}

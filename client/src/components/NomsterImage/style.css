@@ -1,0 +1,17 @@
+/* front page image of monster */
+
+@media only screen and (min-width: 200px) {
+    img {
+        border-radius: 42px;
+        /* width: 25vw; */
+        /* height: 25vw; */
+        margin-top: -1vw;
+        width: 42%;
+        height: 42%;
+        /* width: 350px;
+                height: 350px; */
+        min-width: 300px;
+        min-height: 300px;
+    }
+  }
+  
