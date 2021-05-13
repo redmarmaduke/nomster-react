@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv-byenv').config();
 
 const express = require('express');
 const getListing = require('./util/getListing');
