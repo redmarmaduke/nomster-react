@@ -1,15 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 
 import monster1 from "../../images/monster-1.png";
 import './style.css';
 
-
 function Results(props) {
+    console.log(JSON.stringify(props, null, 1));
     const [imageHover, setImageHover] = useState(false);
     const bubble1Ref = useRef();
     const bubble2Ref = useRef();
     const bubble3Ref = useRef();
+
     const ref = useRef({
         map: undefined,
         infobox: undefined
@@ -112,108 +113,121 @@ function Results(props) {
     }
 
     useEffect(() => {
+        var Microsoft = window.Microsoft;
         // deal with server side pre-rendering
-        if (window.Microsoft !== undefined) {
-            ref.current.map = new window.Microsoft.Maps.Map('#myMap', {
-                credentials: process.env.REACT_APP_MSN_CREDENTIALS
-            });
-            ref.current.infobox = new window.Microsoft.Maps.Infobox(ref.current.map.getCenter(), {
-                visible: false
-            });
+        if (Microsoft !== undefined) {
+            if (!ref.current.map) {
+                ref.current.map = new Microsoft.Maps.Map('#myMap', {
+                    credentials: process.env.REACT_APP_MSN_CREDENTIALS
+                });
+                ref.current.infobox = new Microsoft.Maps.Infobox(ref.current.map.getCenter(), {
+                    visible: false
+                });
 
-            //Assign the infobox to a map instance.
-            ref.current.infobox.setMap(ref.current.map);
-
-            function pushpinClicked(e) {
-                //Make sure the infobox has metadata to display.
-                if (e.target.metadata) {
-                    //Set the infobox options with the metadata of the pushpin.
-                    console.log(e.target.getLocation(), e.target.metadata.title, e.target.metadata.description);
-                    ref.current.infobox.setOptions({
-                        location: e.target.getLocation(),
-                        title: e.target.metadata.title,
-                        description: e.target.metadata.description,
-                        visible: true,
-                        // needed since an OVER LARGE X shows up without it
-                        // no close button for the infobox as a result
-                        // FIX: need to "customize" infobox so it has a close button
-                        showCloseButton: false
-
-                    });
-                }
+                //Assign the infobox to a map instance.
+                ref.current.infobox.setMap(ref.current.map);
             }
+        }
+    });
 
+    useEffect(() => {
+        var Microsoft = window.Microsoft;
+        if (Microsoft !== undefined) {
             for (let business of props.results.businesses) {
                 let lat = business.coordinates.latitude;
                 let lon = business.coordinates.longitude;
 
-                let loc = new window.Microsoft.Maps.Location(lat, lon);
-                let pin = new window.Microsoft.Maps.Pushpin(loc);
+                let loc = new Microsoft.Maps.Location(lat, lon);
+                let pin = new Microsoft.Maps.Pushpin(loc);
                 pin.metadata = {
                     title: business.name,
                     description: business.location.display_address.join("\n")
                 };
-                window.Microsoft.Maps.Events.addHandler(pin, 'click', pushpinClicked);
+                Microsoft.Maps.Events.addHandler(pin, 'click', function (e) {
+                    //Make sure the infobox has metadata to display.
+                    if (e.target.metadata) {
+                        //Set the infobox options with the metadata of the pushpin.
+                        ref.current.infobox.setOptions({
+                            location: e.target.getLocation(),
+                            title: e.target.metadata.title,
+                            description: e.target.metadata.description,
+                            visible: true,
+                            // needed since an OVER LARGE X shows up without it
+                            // no close button for the infobox as a result
+                            // FIX: need to "customize" infobox so it has a close button
+                            showCloseButton: false
+
+                        });
+                    }
+                });
+
                 ref.current.map.entities.push(pin);
             }
-            let loc = new window.Microsoft.Maps.Location(props.results.region.center.latitude,
+            let loc = new Microsoft.Maps.Location(props.results.region.center.latitude,
                 props.results.region.center.longitude);
             ref.current.map.setView({ center: loc, zoom: 15 });
         }
-    });
+    }, [props.results.businesses, props.results.region.center.latitude, props.results.region.center.longitude]);
 
     return (
-        <div>
-            <div id="page-2" className="container">
-                {/* This search-results div will have other generated search divs appended to it to display search results */}
-                <div className="search-results">
-                    <h3 id="noms">Nom Noms</h3>
-                    <div id="nom-list">
-                        {
-                            props.results.businesses.map((business, index) => {
-                                return (
-                                    <div key={index} className="business"
-                                        data-lat={business.coordinates.latitude}
-                                        data-lon={business.coordinates.longitude}
-                                    >
-                                        <a className="name" href={business.url}>
-                                            {business.name}
-                                        </a>
-                                        <p>
-                                            {
-                                                `${business.location.display_address[0]} ${business.location.display_address[1]}`
-                                            }
-                                        </p>
-                                        <a href={`tel:${business.phone}`}>{business.phone}</a>
-                                    </div>
-                                );
-                            })
-                        }
-                    </div>
-                </div>
+        <>
+            {
+                props.results.businesses ?
+                    (<div>
+                        <div id="page-2" className="container">
+                            {/* This search-results div will have other generated search divs appended to it to display search results */}
+                            <div className="search-results">
+                                <h3 id="noms">Nom Noms</h3>
+                                <div id="nom-list">
+                                    {
+                                        props.results.businesses.map((business, index) => {
+                                            return (
+                                                <div key={index} className="business"
+                                                    data-lat={business.coordinates.latitude}
+                                                    data-lon={business.coordinates.longitude}
+                                                >
+                                                    <a className="name" href={business.url}>
+                                                        {business.name}
+                                                    </a>
+                                                    <p>
+                                                        {
+                                                            `${business.location.display_address[0]} ${business.location.display_address[1]}`
+                                                        }
+                                                    </p>
+                                                    <a href={`tel:${business.phone}`}>{business.phone}</a>
+                                                </div>
+                                            );
+                                        })
+                                    }
+                                </div>
+                            </div>
 
-                {/* This results-mapdiv will house the generated map once an option is selected from the search-results div list */}
-                <div className="results-map">
-                    <h3 id="path">Path to Nom Noms</h3>
-                    {/* map adds here */}
-                    {/* <div id="myMap" style="position:relative;width:300px;height:560px;"></div> */}
-                    <div id="myMap"></div>
-                </div>
-            </div>
+                            {/* This results-mapdiv will house the generated map once an option is selected from the search-results div list */}
+                            <div className="results-map">
+                                <h3 id="path">Path to Nom Noms</h3>
+                                {/* map adds here */}
+                                {/* <div id="myMap" style="position:relative;width:300px;height:560px;"></div> */}
+                                <div id="myMap"></div>
+                            </div>
+                        </div>
 
-            {/* angled monster page 2 */}
-            <img src={monster1} style={style.imageDisplay(imageHover)}
-                onMouseEnter={() => setImageHover(true)}
-                onMouseLeave={() => setImageHover(false)}
-                alt="monster" />
-            <div ref={bubble1Ref} style={style.bubble1}></div>
-            <div ref={bubble2Ref} style={style.bubble2}></div>
-            <div ref={bubble3Ref} style={style.bubble3}>
-                <Link to="/">
-                    <p style={style.nomsterText}>Click Me to go back</p>
-                </Link>
-            </div>
-        </div>
+                        {/* angled monster page 2 */}
+                        <img src={monster1} style={style.imageDisplay(imageHover)}
+                            onMouseEnter={() => setImageHover(true)}
+                            onMouseLeave={() => setImageHover(false)}
+                            alt="monster" />
+                        <div ref={bubble1Ref} style={style.bubble1}></div>
+                        <div ref={bubble2Ref} style={style.bubble2}></div>
+                        <div ref={bubble3Ref} style={style.bubble3}>
+                            <Link to="/">
+                                <p style={style.nomsterText}>Click Me to go back</p>
+                            </Link>
+                        </div>
+                    </div>)
+                    :
+                    <Redirect to="/" />
+            }
+        </>
     );
 }
 
